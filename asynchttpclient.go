@@ -19,7 +19,7 @@ type Client struct {
 	// Max concurrency can run at the same time. If zero, concurrency is unlimited.
 	Concurrency int
 
-	ticketsJar GoTickets
+	ticketsJar goTickets
 	ticketInit sync.Once
 }
 
@@ -39,7 +39,7 @@ func (c *Client) initTicket() {
 	}
 }
 
-func (c *Client) tickets() GoTickets {
+func (c *Client) tickets() goTickets {
 	if c.Concurrency > 0 && c.ticketsJar == nil {
 		c.ticketInit.Do(c.initTicket)
 	}
