@@ -12,7 +12,7 @@ import (
 
 // An AsyncHttpClient is an async http client. Its zero value (DefautAsyncHttpClient)
 // will start unlimit go threads.
-type AsyncHttpClient struct {
+type Client struct {
 	// Client specifies the original http.Client. If nil, http.DefaultClient is used.
 	Client *http.Client
 
@@ -23,14 +23,14 @@ type AsyncHttpClient struct {
 	ticketInit sync.Once
 }
 
-func (c *AsyncHttpClient) client() *http.Client {
+func (c *Client) client() *http.Client {
 	if c.Client == nil {
 		return http.DefaultClient
 	}
 	return c.Client
 }
 
-func (c *AsyncHttpClient) initTicket() {
+func (c *Client) initTicket() {
 	if c.Concurrency > 0 {
 		tickets, err := NewGoTicket(c.Concurrency)
 		if err == nil {
@@ -39,28 +39,28 @@ func (c *AsyncHttpClient) initTicket() {
 	}
 }
 
-func (c *AsyncHttpClient) tickets() GoTickets {
+func (c *Client) tickets() GoTickets {
 	if c.Concurrency > 0 && c.ticketsJar == nil {
 		c.ticketInit.Do(c.initTicket)
 	}
 	return c.ticketsJar
 }
 
-func (c *AsyncHttpClient) takeTicket() {
+func (c *Client) takeTicket() {
 	if c.Concurrency > 0 {
 		c.tickets().Take()
 		return
 	}
 }
 
-func (c *AsyncHttpClient) returnTicket() {
+func (c *Client) returnTicket() {
 	if c.Concurrency > 0 {
 		c.tickets().Return()
 		return
 	}
 }
 
-func respHandler(c *AsyncHttpClient, callback func(error, *http.Response)) {
+func respHandler(c *Client, callback func(error, *http.Response)) {
 	if p := recover(); p != nil {
 		err, ok := interface{}(p).(error)
 		if ok {
@@ -74,7 +74,7 @@ func respHandler(c *AsyncHttpClient, callback func(error, *http.Response)) {
 	c.returnTicket()
 }
 
-func asyncAction(c *AsyncHttpClient, callback func(error, *http.Response), action func() (*http.Response, error)) {
+func asyncAction(c *Client, callback func(error, *http.Response), action func() (*http.Response, error)) {
 	c.takeTicket()
 
 	defer respHandler(c, callback)
@@ -83,31 +83,31 @@ func asyncAction(c *AsyncHttpClient, callback func(error, *http.Response), actio
 	callback(httpErr, resp)
 }
 
-func (c *AsyncHttpClient) Get(url string, callback func(error, *http.Response)) {
+func (c *Client) Get(url string, callback func(error, *http.Response)) {
 	go asyncAction(c, callback, func() (*http.Response, error) {
 		return c.client().Get(url)
 	})
 }
 
-func (c *AsyncHttpClient) Head(url string, callback func(error, *http.Response)) {
+func (c *Client) Head(url string, callback func(error, *http.Response)) {
 	go asyncAction(c, callback, func() (*http.Response, error) {
 		return c.client().Head(url)
 	})
 }
 
-func (c *AsyncHttpClient) Post(url string, bodyType string, body io.Reader, callback func(error, *http.Response)) {
+func (c *Client) Post(url string, bodyType string, body io.Reader, callback func(error, *http.Response)) {
 	go asyncAction(c, callback, func() (*http.Response, error) {
 		return c.client().Post(url, bodyType, body)
 	})
 }
 
-func (c *AsyncHttpClient) PostForm(url string, data url.Values, callback func(error, *http.Response)) {
+func (c *Client) PostForm(url string, data url.Values, callback func(error, *http.Response)) {
 	go asyncAction(c, callback, func() (*http.Response, error) {
 		return c.client().PostForm(url, data)
 	})
 }
 
-func (c *AsyncHttpClient) Do(req *http.Request, callback func(error, *http.Response)) {
+func (c *Client) Do(req *http.Request, callback func(error, *http.Response)) {
 	go asyncAction(c, callback, func() (*http.Response, error) {
 		return c.client().Do(req)
 	})

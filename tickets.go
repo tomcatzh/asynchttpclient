@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-type GoTickets interface {
+type goTickets interface {
 	Take()
 	Return()
 	Active() bool
@@ -19,7 +19,7 @@ type baseGoTickets struct {
 	active   bool
 }
 
-func NewGoTicket(total int) (GoTickets, error) {
+func NewGoTicket(total int) (goTickets, error) {
 	gt := baseGoTickets{}
 	if !gt.init(total) {
 		errMsg := fmt.Sprintf("The goroutine ticket pool can NOT be initialized! (total=%d)\n", total)

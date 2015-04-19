@@ -75,7 +75,7 @@ func (h *testRespHandler) handle(err error, resp *http.Response) {
 
 func TestGetSingleConcurrency(t *testing.T) {
 	h := newTestRespHandler(3)
-	c := AsyncHttpClient{Concurrency: 1}
+	c := Client{Concurrency: 1}
 
 	Convey("Test Async Get with Concurrency limit 1", t, func() {
 		c.Get("http://"+server+"/1", h.handle)
@@ -105,7 +105,7 @@ func TestGetSingleConcurrency(t *testing.T) {
 
 func TestHead(t *testing.T) {
 	h := newTestRespHandler(1)
-	c := AsyncHttpClient{}
+	c := Client{}
 
 	Convey("Test Async Head without Concurrency limit", t, func() {
 		c.Head("http://"+server+"/3", h.handle)
@@ -119,7 +119,7 @@ func TestHead(t *testing.T) {
 
 func TestDo(t *testing.T) {
 	h := newTestRespHandler(1)
-	c := AsyncHttpClient{}
+	c := Client{}
 
 	Convey("Test Async Do without Concurrency limit", t, func() {
 		req, err := http.NewRequest("POST", "http://"+server+"/3", nil)
@@ -136,7 +136,7 @@ func TestDo(t *testing.T) {
 
 func TestGetError(t *testing.T) {
 	h := newTestRespHandler(1)
-	c := AsyncHttpClient{}
+	c := Client{}
 
 	Convey("Test Async Get Error server", t, func() {
 		foobar_server := "127.0.0.1:31713"
@@ -165,7 +165,7 @@ func TestCustomClient(t *testing.T) {
 	}
 
 	client := &http.Client{Transport: myTransport}
-	c := AsyncHttpClient{Client: client}
+	c := Client{Client: client}
 
 	Convey("Test Async Get using custom http.Client", t, func() {
 		c.Get("http://"+server+"/1", h.handle)
@@ -195,7 +195,7 @@ func TestCustomClient(t *testing.T) {
 
 func TestGet(t *testing.T) {
 	h := newTestRespHandler(3)
-	c := AsyncHttpClient{}
+	c := Client{}
 
 	Convey("Test Async Get without Concurrency limit", t, func() {
 		c.Get("http://"+server+"/1", h.handle)
